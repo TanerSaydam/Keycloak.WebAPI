@@ -136,6 +136,41 @@ public sealed class HttpService(
         return Result<T>.Succeed(data);
     }
 
+    public async Task<Result<T>> DeleteAsync<T>(string endpoint, object body, bool sendToken, CancellationToken cancellationToken)
+    {
+        var client = httpClientFactory.CreateClient();
+
+        if (sendToken)
+        {
+            string token = await keycloakService.GetTokenAsync(cancellationToken);
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+        }
+
+        var request = new HttpRequestMessage(HttpMethod.Delete, endpoint);
+
+        var json = JsonSerializer.Serialize(body);
+        request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await client.SendAsync(request, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var message = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+            return Result<T>.Failure(message!.ErrorDescription);
+        }
+
+        if (response.StatusCode == System.Net.HttpStatusCode.Created || response.StatusCode == System.Net.HttpStatusCode.NoContent)
+        {
+            return Result<T>.Succeed(default!);
+        }
+
+        var result = await response.Content.ReadAsStringAsync();
+
+        var data = JsonSerializer.Deserialize<T>(result)!;
+        return Result<T>.Succeed(data);
+    }
+
+
     public async Task<Result<T>> PostFormDataAsync<T>(string endpoint, KeyValuePair<string, string>[] body, bool sendToken, CancellationToken cancellationToken)
     {
         var client = httpClientFactory.CreateClient();
