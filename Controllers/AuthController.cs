@@ -43,12 +43,12 @@ public class AuthController(
         return StatusCode(response.StatusCode, response);
     }
 
-    [HttpGet]
+    [HttpPut]
     public async Task<IActionResult> ConfirmEmail(string email, CancellationToken cancellationToken)
     {
         var token = await keycloakService.GetTokenAsync(cancellationToken);
 
-        KeycloakUserDto user = await keycloakService.GetUserByEmail(email, token, cancellationToken);
+        UserDto user = await keycloakService.GetUserByEmail(email, token, cancellationToken);
 
         if (user.EmailVerified)
         {

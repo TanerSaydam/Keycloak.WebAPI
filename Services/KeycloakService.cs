@@ -24,7 +24,7 @@ public sealed class KeycloakService(
 
         if (!response.IsSuccessStatusCode)
         {
-            var objMessage = await response.Content.ReadFromJsonAsync<KeycloakErrorResponseDto>();
+            var objMessage = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
             string stringMessage = JsonSerializer.Serialize(objMessage);
             throw new ArgumentException(stringMessage);
         }
@@ -34,7 +34,7 @@ public sealed class KeycloakService(
         return loginResponse!.access_token;
     }
 
-    public async Task<KeycloakUserDto> GetUserByEmail(string email, string token, CancellationToken cancellationToken)
+    public async Task<UserDto> GetUserByEmail(string email, string token, CancellationToken cancellationToken)
     {
         var endPoint = $"{keycloak.AuthServerUrl}/admin/realms/{keycloak.Realm}/users?email={email}";
         var client = httpClientFactory.CreateClient();
@@ -45,21 +45,49 @@ public sealed class KeycloakService(
 
         if (!response.IsSuccessStatusCode)
         {
-            var objMessage = await response.Content.ReadFromJsonAsync<KeycloakErrorResponseDto>();
+            var objMessage = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
             string stringMessage = JsonSerializer.Serialize(objMessage);
             throw new ArgumentException(stringMessage);
         }
 
         var result = await response.Content.ReadAsStringAsync();
 
-        List<KeycloakUserDto> keycloakUserDtos = JsonSerializer.Deserialize<List<KeycloakUserDto>>(result)!;
+        List<UserDto> keycloakUserDtos = JsonSerializer.Deserialize<List<UserDto>>(result)!;
 
         if (keycloakUserDtos.Count == 0)
         {
             throw new ArgumentException("User not found");
         }
 
-        KeycloakUserDto user = keycloakUserDtos.First();
+        UserDto user = keycloakUserDtos.First();
+
+        return user;
+    }
+
+    public async Task<UserDto> GetUserById(Guid id, string token, CancellationToken cancellationToken)
+    {
+        var endPoint = $"{keycloak.AuthServerUrl}/admin/realms/{keycloak.Realm}/users/{id}";
+        var client = httpClientFactory.CreateClient();
+
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
+        var response = await client.GetAsync(endPoint, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var objMessage = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+            string stringMessage = JsonSerializer.Serialize(objMessage);
+            throw new ArgumentException(stringMessage);
+        }
+
+        var result = await response.Content.ReadAsStringAsync();
+
+        UserDto? user = JsonSerializer.Deserialize<UserDto>(result);
+
+        if (user is null)
+        {
+            throw new ArgumentException("User not found");
+        }
 
         return user;
     }

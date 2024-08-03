@@ -2,7 +2,7 @@
 
 namespace Keycloak.WebAPI.DTOs;
 
-public sealed class KeycloakErrorResponseDto
+public sealed class ErrorResponseDto
 {
     [JsonPropertyName("error")]
     public string Error { get; set; } = default!;

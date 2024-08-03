@@ -2,7 +2,7 @@
 
 namespace Keycloak.WebAPI.DTOs;
 
-public sealed class KeycloakRoleDto
+public sealed class RoleDto
 {
     [JsonPropertyName("id")]
     public Guid Id { get; set; }

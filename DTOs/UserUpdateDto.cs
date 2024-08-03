@@ -2,13 +2,10 @@
 
 namespace Keycloak.WebAPI.DTOs;
 
-public sealed class KeycloakUserDto
+public sealed class UserUpdateDto
 {
     [JsonPropertyName("id")]
     public Guid Id { get; set; }
-
-    [JsonPropertyName("username")]
-    public string UserName { get; set; } = default!;
 
     [JsonPropertyName("firstName")]
     public string FirstName { get; set; } = default!;
@@ -18,13 +15,4 @@ public sealed class KeycloakUserDto
 
     [JsonPropertyName("email")]
     public string Email { get; set; } = default!;
-
-    [JsonPropertyName("emailVerified")]
-    public bool EmailVerified { get; set; }
-
-    [JsonPropertyName("enabled")]
-    public bool Enabled { get; set; }
-
-    [JsonPropertyName("createdTimestamp")]
-    public long CreatedTimeStamp { get; set; }
 }

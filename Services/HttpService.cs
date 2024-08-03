@@ -23,7 +23,7 @@ public sealed class HttpService(
 
         if (!response.IsSuccessStatusCode)
         {
-            var message = await response.Content.ReadFromJsonAsync<KeycloakErrorResponseDto>();
+            var message = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
             return Result<T>.Failure(message!.ErrorDescription);
         }
 
@@ -58,9 +58,14 @@ public sealed class HttpService(
             }
             else
             {
-                var message = await response.Content.ReadFromJsonAsync<KeycloakErrorResponseDto>();
+                var message = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
                 return Result<T>.Failure(message!.ErrorDescription);
             }
+        }
+
+        if (response.StatusCode == System.Net.HttpStatusCode.Created || response.StatusCode == System.Net.HttpStatusCode.NoContent)
+        {
+            return Result<T>.Succeed(default!);
         }
 
         var result = await response.Content.ReadAsStringAsync();
@@ -87,8 +92,13 @@ public sealed class HttpService(
 
         if (!response.IsSuccessStatusCode)
         {
-            var message = await response.Content.ReadFromJsonAsync<KeycloakErrorResponseDto>();
+            var message = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
             return Result<T>.Failure(message!.ErrorDescription);
+        }
+
+        if (response.StatusCode == System.Net.HttpStatusCode.Created || response.StatusCode == System.Net.HttpStatusCode.NoContent)
+        {
+            return Result<T>.Succeed(default!);
         }
 
         var result = await response.Content.ReadAsStringAsync();
@@ -96,6 +106,36 @@ public sealed class HttpService(
         var data = JsonSerializer.Deserialize<T>(result)!;
         return Result<T>.Succeed(data);
     }
+
+    public async Task<Result<T>> DeleteAsync<T>(string endpoint, bool sendToken, CancellationToken cancellationToken)
+    {
+        var client = httpClientFactory.CreateClient();
+
+        if (sendToken)
+        {
+            string token = await keycloakService.GetTokenAsync(cancellationToken);
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+        }
+
+        var response = await client.DeleteAsync(endpoint, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var message = await response.Content.ReadFromJsonAsync<ErrorResponseDto>();
+            return Result<T>.Failure(message!.ErrorDescription);
+        }
+
+        if (response.StatusCode == System.Net.HttpStatusCode.Created || response.StatusCode == System.Net.HttpStatusCode.NoContent)
+        {
+            return Result<T>.Succeed(default!);
+        }
+
+        var result = await response.Content.ReadAsStringAsync();
+
+        var data = JsonSerializer.Deserialize<T>(result)!;
+        return Result<T>.Succeed(data);
+    }
+
     public async Task<Result<T>> PostFormDataAsync<T>(string endpoint, KeyValuePair<string, string>[] body, bool sendToken, CancellationToken cancellationToken)
     {
         var client = httpClientFactory.CreateClient();
@@ -110,8 +150,14 @@ public sealed class HttpService(
 
         if (!response.IsSuccessStatusCode)
         {
-            var error = await response.Content.ReadFromJsonAsync<KeycloakErrorResponseDto>(cancellationToken);
+            var error = await response.Content.ReadFromJsonAsync<ErrorResponseDto>(cancellationToken);
             return Result<T>.Failure(error!.ErrorDescription);
+        }
+
+
+        if (response.StatusCode == System.Net.HttpStatusCode.Created || response.StatusCode == System.Net.HttpStatusCode.NoContent)
+        {
+            return Result<T>.Succeed(default!);
         }
 
         var result = await response.Content.ReadAsStringAsync();
