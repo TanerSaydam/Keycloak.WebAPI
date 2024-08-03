@@ -6,8 +6,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpClient();
 
-builder.Services.AddSingleton<KeycloakOptions>();
-builder.Services.AddSingleton<KeycloakService>();
+builder.Services.AddTransient<KeycloakOptions>();
+builder.Services.AddTransient<KeycloakService>();
+builder.Services.AddTransient<HttpService>();
+
 builder.Services.AddKeycloakWebApiAuthentication(builder.Configuration);
 builder.Services.AddAuthorization();
 

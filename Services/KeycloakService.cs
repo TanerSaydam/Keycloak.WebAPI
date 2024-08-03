@@ -8,7 +8,7 @@ public sealed class KeycloakService(
     KeycloakOptions keycloak,
     IHttpClientFactory httpClientFactory)
 {
-    public async Task<string> GetToken(CancellationToken cancellationToken)
+    public async Task<string> GetTokenAsync(CancellationToken cancellationToken)
     {
         var endPoint = $"{keycloak.AuthServerUrl}/realms/{keycloak.Realm}/protocol/openid-connect/token";
         var client = httpClientFactory.CreateClient();
