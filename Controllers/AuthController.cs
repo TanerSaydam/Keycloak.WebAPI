@@ -68,4 +68,5 @@ public class AuthController(
 
         return Ok(new { Message = "Email was confirmed successfully" });
     }
+
 }
